@@ -11,5 +11,6 @@ RUN go test -v ./...
 FROM alpine AS build-release-stage
 WORKDIR /
 COPY --from=build-stage /main /main
+COPY .env .env
 EXPOSE 8080
 ENTRYPOINT ["/main"]
