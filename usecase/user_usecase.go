@@ -15,7 +15,9 @@ type userUsecase struct {
 
 type UserUsecase interface {
 	FindUsers(ctx context.Context) ([]model.User, error)
+	FindUserByID(ctx context.Context, user *model.User) (*model.User, error)
 	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
+	UpdateUser(ctx context.Context, user *model.User) (*model.User, error)
 	CheckUserBirthday(ctx context.Context, user *model.User) bool
 }
 
@@ -29,12 +31,20 @@ func (u *userUsecase) FindUsers(ctx context.Context) ([]model.User, error) {
 	return u.userRepository.Find(ctx)
 }
 
+func (u *userUsecase) FindUserByID(ctx context.Context, user *model.User) (*model.User, error) {
+	return u.userRepository.FindByID(ctx, user)
+}
+
 func (u *userUsecase) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
 	if _, err := u.userRepository.FindByEmail(ctx, user); err == nil {
 		return nil, shared.ErrEmailAlreadyRegistered
 	}
 
 	return u.userRepository.Create(ctx, user)
+}
+
+func (u *userUsecase) UpdateUser(ctx context.Context, user *model.User) (*model.User, error) {
+	return u.userRepository.Update(ctx, user)
 }
 
 func (u *userUsecase) CheckUserBirthday(ctx context.Context, user *model.User) bool {

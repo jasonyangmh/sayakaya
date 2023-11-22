@@ -12,6 +12,14 @@ type Config struct {
 	DBName string `mapstructure:"DB_NAME"`
 	DBHost string `mapstructure:"DB_HOST"`
 	DBPort string `mapstructure:"DB_PORT"`
+
+	Schedule string `mapstructure:"SCHEDULE"`
+	CodeLen  int    `mapstructure:"CODE_LEN"`
+
+	SMTPHost  string `mapstructure:"SMTP_HOST"`
+	SMTPPort  string `mapstructure:"SMTP_Port"`
+	SMTPEmail string `mapstructure:"SMTP_EMAIL"`
+	SMTPPass  string `mapstructure:"SMTP_PASS"`
 }
 
 func Load() *Config {

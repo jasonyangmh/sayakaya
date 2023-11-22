@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jasonyangmh/sayakaya/config"
+	"github.com/jasonyangmh/sayakaya/cron"
 	"github.com/jasonyangmh/sayakaya/handler"
 	"github.com/jasonyangmh/sayakaya/middleware"
 	"github.com/jasonyangmh/sayakaya/repository"
@@ -20,7 +22,7 @@ type Router struct {
 	router *gin.Engine
 }
 
-func New(db *gorm.DB) *Router {
+func New(cfg *config.Config, db *gorm.DB) *Router {
 	r := gin.Default()
 	r.Use(middleware.ErrorMiddleware())
 	r.ContextWithFallback = true
@@ -29,10 +31,27 @@ func New(db *gorm.DB) *Router {
 	uu := usecase.NewUserUsecase(ur)
 	uh := handler.NewUserHandler(uu)
 
+	pr := repository.NewPromoRepository(db)
+	pu := usecase.NewPromoUsecase(cfg, pr)
+	ph := handler.NewPromoHandler(pu)
+
+	c := cron.New(cfg, uu, pu)
+	c.Run()
+
 	users := r.Group("/users")
 	{
 		users.POST("", uh.PostUser)
 		users.GET("", uh.GetUsers)
+		users.GET("/:id", uh.GetUser)
+		users.PUT("/:id", uh.PutUser)
+	}
+
+	promos := r.Group("/promos")
+	{
+		promos.POST("/generate", ph.GeneratePromo)
+		promos.POST("/redeem", ph.RedeemPromo)
+		promos.POST("", ph.PostPromo)
+		promos.GET("", ph.GetPromos)
 	}
 
 	return &Router{

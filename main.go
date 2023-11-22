@@ -12,6 +12,6 @@ func main() {
 	db := database.Connect(cfg)
 	db.Migrate()
 
-	r := router.New(db.Database)
+	r := router.New(cfg, db.Database)
 	r.Start()
 }

@@ -35,5 +35,15 @@ func Connect(cfg *config.Config) *Database {
 }
 
 func (db *Database) Migrate() {
-	db.Database.AutoMigrate(&model.User{})
+	db.Database.Migrator().DropTable(
+		&model.User{},
+		&model.Promo{},
+		&model.UserPromo{},
+	)
+
+	db.Database.AutoMigrate(
+		&model.User{},
+		&model.Promo{},
+		&model.UserPromo{},
+	)
 }

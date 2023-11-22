@@ -5,7 +5,12 @@ type UserRequest struct {
 	Birthday string `json:"birthday" binding:"required"`
 }
 
+type UserUpdateRequest struct {
+	IsVerified bool `json:"is_verified" binding:"required"`
+}
+
 type UserResponse struct {
+	ID         uint   `json:"id"`
 	Email      string `json:"email"`
 	Birthday   string `json:"birthday"`
 	IsVerified bool   `json:"is_verified"`

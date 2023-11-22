@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,7 @@ import (
 	"github.com/jasonyangmh/sayakaya/model"
 	"github.com/jasonyangmh/sayakaya/shared"
 	"github.com/jasonyangmh/sayakaya/usecase"
+	"gorm.io/gorm"
 )
 
 type UserHandler struct {
@@ -50,6 +52,7 @@ func (h *UserHandler) PostUser(c *gin.Context) {
 	isBirthday := h.userUsecase.CheckUserBirthday(ctx, user)
 
 	res := dto.UserResponse{
+		ID:         user.Model.ID,
 		Email:      user.Email,
 		Birthday:   user.Birthday.Format(shared.TimeLayout),
 		IsVerified: user.IsVerified,
@@ -74,6 +77,7 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 		isBirthday := h.userUsecase.CheckUserBirthday(ctx, &user)
 
 		res = append(res, dto.UserResponse{
+			ID:         user.Model.ID,
 			Email:      user.Email,
 			Birthday:   user.Birthday.Format(shared.TimeLayout),
 			IsVerified: user.IsVerified,
@@ -82,4 +86,85 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, dto.JSONResponse{Data: res})
+}
+
+func (h *UserHandler) GetUser(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	str, match := c.Params.Get(shared.ID)
+	id, err := strconv.Atoi(str)
+
+	if !match || err != nil {
+		c.Error(shared.ErrInvalidID)
+		return
+	}
+
+	user := &model.User{
+		Model: gorm.Model{ID: uint(id)},
+	}
+
+	user, err = h.userUsecase.FindUserByID(ctx, user)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	isBirthday := h.userUsecase.CheckUserBirthday(ctx, user)
+
+	res := dto.UserResponse{
+		ID:         user.Model.ID,
+		Email:      user.Email,
+		Birthday:   user.Birthday.Format(shared.TimeLayout),
+		IsVerified: user.IsVerified,
+		IsBirthday: isBirthday,
+	}
+
+	c.JSON(http.StatusOK, dto.JSONResponse{Data: res})
+}
+
+func (h *UserHandler) PutUser(c *gin.Context) {
+	ctx := c.Request.Context()
+	req := dto.UserUpdateRequest{}
+
+	str, match := c.Params.Get(shared.ID)
+	id, err := strconv.Atoi(str)
+
+	if !match || err != nil {
+		c.Error(shared.ErrInvalidID)
+		return
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(err)
+		return
+	}
+
+	user := &model.User{
+		Model:      gorm.Model{ID: uint(id)},
+		IsVerified: req.IsVerified,
+	}
+
+	user, err = h.userUsecase.UpdateUser(ctx, user)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	user, err = h.userUsecase.FindUserByID(ctx, user)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	isBirthday := h.userUsecase.CheckUserBirthday(ctx, user)
+
+	res := dto.UserResponse{
+		ID:         user.Model.ID,
+		Email:      user.Email,
+		Birthday:   user.Birthday.Format(shared.TimeLayout),
+		IsVerified: user.IsVerified,
+		IsBirthday: isBirthday,
+	}
+
+	c.JSON(http.StatusOK, dto.JSONResponse{Data: res})
 }
