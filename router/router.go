@@ -32,6 +32,7 @@ func New(db *gorm.DB) *Router {
 	users := r.Group("/users")
 	{
 		users.POST("", uh.PostUser)
+		users.GET("", uh.GetUsers)
 	}
 
 	return &Router{

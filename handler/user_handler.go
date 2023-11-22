@@ -58,3 +58,28 @@ func (h *UserHandler) PostUser(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, dto.JSONResponse{Data: res})
 }
+
+func (h *UserHandler) GetUsers(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	users, err := h.userUsecase.FindUsers(ctx)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	res := []dto.UserResponse{}
+
+	for _, user := range users {
+		isBirthday := h.userUsecase.CheckUserBirthday(ctx, &user)
+
+		res = append(res, dto.UserResponse{
+			Email:      user.Email,
+			Birthday:   user.Birthday.Format(shared.TimeLayout),
+			IsVerified: user.IsVerified,
+			IsBirthday: isBirthday,
+		})
+	}
+
+	c.JSON(http.StatusCreated, dto.JSONResponse{Data: res})
+}
