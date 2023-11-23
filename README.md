@@ -65,7 +65,7 @@ erDiagram
 ## How to run
 
 ```bash
-sudo docker compose up
+docker compose up
 ```
 
 ## Documentation
